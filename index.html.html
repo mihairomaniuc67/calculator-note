@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#ffffff" />
+<title>Calculator Note</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f5f3;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.12);
+    --border-hover: rgba(0,0,0,0.25);
+    --text: #1a1a18;
+    --muted: #6b6b67;
+    --hint: #9a9a96;
+    --accent: #3c34b5;
+    --accent-bg: #eeedfe;
+    --accent-text: #26215c;
+    --danger: #a32d2d;
+    --danger-bg: #fcebeb;
+    --success: #0f6e56;
+    --success-bg: #e1f5ee;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --surface: #242422;
+      --border: rgba(255,255,255,0.10);
+      --border-hover: rgba(255,255,255,0.22);
+      --text: #f0f0ec;
+      --muted: #a0a09a;
+      --hint: #6b6b67;
+      --accent: #9f99f0;
+      --accent-bg: #26215c;
+      --accent-text: #cec bf6;
+      --danger: #f09595;
+      --danger-bg: #501313;
+      --success: #5dcaa5;
+      --success-bg: #04342c;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    width: 100%;
+    max-width: 480px;
+    padding: 1.5rem 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo {
+    width: 36px; height: 36px;
+    background: var(--accent-bg);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+  }
+
+  .card-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  input[type=number] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 15px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input[type=number]:focus { border-color: var(--accent); }
+
+  .grade-entry {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .grade-entry input { flex: 1; }
+
+  .add-btn {
+    background: var(--accent-bg);
+    color: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    width: 40px; height: 40px;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+
+  .add-btn:active { opacity: 0.7; }
+
+  #tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    min-height: 0;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px 4px 12px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .tag button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--hint);
+    font-size: 17px;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+  }
+
+  .avg-row {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    display: none;
+  }
+
+  .avg-row span { font-weight: 600; color: var(--text); }
+
+  .calc-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: -0.2px;
+  }
+
+  .calc-btn:active { opacity: 0.85; transform: scale(0.98); }
+
+  #result {
+    display: none;
+    border-radius: var(--radius);
+    padding: 1.4rem 1.25rem;
+    text-align: center;
+  }
+
+  #result.ok { background: var(--accent-bg); border: 1px solid rgba(84,74,183,0.15); }
+  #result.err { background: var(--danger-bg); border: 1px solid rgba(163,45,45,0.15); }
+  #result.good { background: var(--success-bg); border: 1px solid rgba(15,110,86,0.15); }
+
+  .result-num {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -2px;
+    color: var(--accent);
+  }
+
+  #result.err .result-num { color: var(--danger); font-size: 36px; }
+  #result.good .result-num { color: var(--success); font-size: 36px; }
+
+  .result-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .err-msg {
+    font-size: 12px;
+    color: var(--danger);
+    margin-top: 4px;
+    display: none;
+  }
+
+  footer {
+    margin-top: auto;
+    padding: 1.5rem 0 0.5rem;
+    font-size: 12px;
+    color: var(--hint);
+    text-align: center;
+  }
+
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 13px;
+    padding: 8px 14px;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+
+  .reset-btn:hover { border-color: var(--border-hover); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📊</div>
+  <h1>Calculator Note</h1>
+</header>
+
+<main>
+  <div class="card">
+    <div class="card-label">Media dorită</div>
+    <input type="number" id="target" min="1" max="10" step="0.01" placeholder="ex: 9.50" />
+    <div class="err-msg" id="err-target">Introduceți o medie validă între 1 și 10.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Notele curente</div>
+    <div class="grade-entry">
+      <input type="number" id="note-input" min="1" max="10" step="0.01" placeholder="ex: 8.50" />
+      <button class="add-btn" onclick="addFromBtn()" aria-label="Adaugă nota">+</button>
+    </div>
+    <div id="tags"></div>
+    <div class="avg-row" id="avg-row">Media curentă: <span id="avg-val"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Nota maximă posibilă</div>
+    <input type="number" id="max-grade" min="1" max="10" step="0.01" placeholder="ex: 10" />
+    <div class="err-msg" id="err-max">Introduceți o notă maximă validă.</div>
+  </div>
+
+  <button class="calc-btn" onclick="calculate()">Calculează</button>
+
+  <div id="result"></div>
+
+  <button class="reset-btn" onclick="resetAll()">Resetează tot</button>
+</main>
+
+<footer>Funcționează offline · nicio dată nu este trimisă nicăieri</footer>
+
+<script>
+  const grades = [];
+
+  function renderTags() {
+    const tagsEl = document.getElementById('tags');
+    tagsEl.innerHTML = '';
+    grades.forEach((g, i) => {
+      const d = document.createElement('div');
+      d.className = 'tag';
+      d.innerHTML = `${g % 1 === 0 ? g : g.toFixed(2)} <button onclick="removeGrade(${i})" aria-label="Șterge nota ${g}">×</button>`;
+      tagsEl.appendChild(d);
+    });
+    const avgRow = document.getElementById('avg-row');
+    if (grades.length > 0) {
+      const avg = grades.reduce((a,b)=>a+b,0)/grades.length;
+      document.getElementById('avg-val').textContent = avg.toFixed(2);
+      avgRow.style.display = 'block';
+    } else {
+      avgRow.style.display = 'none';
+    }
+  }
+
+  function addGrade(val) {
+    const n = parseFloat(val);
+    if (isNaN(n) || n < 1 || n > 10) return false;
+    grades.push(n);
+    renderTags();
+    return true;
+  }
+
+  function addFromBtn() {
+    const inp = document.getElementById('note-input');
+    if (addGrade(inp.value)) inp.value = '';
+    inp.focus();
+  }
+
+  function removeGrade(i) {
+    grades.splice(i, 1);
+    renderTags();
+    if (document.getElementById('result').style.display !== 'none') calculate();
+  }
+
+  document.getElementById('note-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addFromBtn();
+    }
+  });
+
+  function calculate() {
+    const resultEl = document.getElementById('result');
+    const errTarget = document.getElementById('err-target');
+    const errMax = document.getElementById('err-max');
+    errTarget.style.display = 'none';
+    errMax.style.display = 'none';
+
+    const c = parseFloat(document.getElementById('target').value);
+    const b = parseFloat(document.getElementById('max-grade').value);
+
+    if (isNaN(c) || c < 1 || c > 10) {
+      errTarget.style.display = 'block';
+      resultEl.style.display = 'none';
+      return;
+    }
+    if (isNaN(b) || b < 1 || b > 10) {
+      errMax.style.display = 'block';
+      resultEl.style.display = 'none';
+      return;
+    }
+
+    resultEl.style.display = 'block';
+
+    if (b <= c) {
+      resultEl.className = 'err';
+      resultEl.innerHTML = `<div class="result-num">⚠</div><div class="result-sub">Nota maximă posibilă (<strong>${b}</strong>) nu depășește media dorită (<strong>${c}</strong>). Nu se poate ajunge la media dorită.</div>`;
+      return;
+    }
+
+    const s = grades.reduce((a,b)=>a+b, 0);
+    const n = grades.length;
+    const a = (c * n - s) / (b - c);
+    const rezultat = Math.max(0, Math.ceil(a));
+
+    if (rezultat === 0) {
+      resultEl.className = 'good';
+      resultEl.innerHTML = `<div class="result-num">✓</div><div class="result-sub">Ai deja media dorită! Nu mai ai nevoie de note suplimentare.</div>`;
+    } else {
+      resultEl.className = 'ok';
+      resultEl.innerHTML = `<div class="result-num">${rezultat}</div><div class="result-sub">notă${rezultat === 1 ? '' : ' de câte'} <strong>${b % 1 === 0 ? b : b.toFixed(2)}</strong> mai trebuie${rezultat === 1 ? '' : ' să iei'} pentru a ajunge la media <strong>${c % 1 === 0 ? c : c.toFixed(2)}</strong></div>`;
+    }
+  }
+
+  function resetAll() {
+    grades.length = 0;
+    renderTags();
+    document.getElementById('target').value = '';
+    document.getElementById('note-input').value = '';
+    document.getElementById('max-grade').value = '';
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('err-target').style.display = 'none';
+    document.getElementById('err-max').style.display = 'none';
+  }
+</script>
+</body>
+</html>
